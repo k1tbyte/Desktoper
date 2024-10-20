@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Desktoper.Services
+namespace Desktoper.Lib
 {
     public class VirtualDesktopManager
     {
@@ -214,17 +214,22 @@ namespace Desktoper.Services
 	{
 		static DesktopManager()
 		{
-			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell));
-			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal).GUID);
-			VirtualDesktopManager = (IVirtualDesktopManager)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_VirtualDesktopManager));
-			ApplicationViewCollection = (IApplicationViewCollection)shell.QueryService(typeof(IApplicationViewCollection).GUID, typeof(IApplicationViewCollection).GUID);
-			VirtualDesktopPinnedApps = (IVirtualDesktopPinnedApps)shell.QueryService(Guids.CLSID_VirtualDesktopPinnedApps, typeof(IVirtualDesktopPinnedApps).GUID);
+			Init();
 		}
 
 		internal static IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
 		internal static IVirtualDesktopManager VirtualDesktopManager;
 		internal static IApplicationViewCollection ApplicationViewCollection;
 		internal static IVirtualDesktopPinnedApps VirtualDesktopPinnedApps;
+
+		public static void Init()
+		{
+			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell));
+			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal).GUID);
+			VirtualDesktopManager = (IVirtualDesktopManager)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_VirtualDesktopManager));
+			ApplicationViewCollection = (IApplicationViewCollection)shell.QueryService(typeof(IApplicationViewCollection).GUID, typeof(IApplicationViewCollection).GUID);
+			VirtualDesktopPinnedApps = (IVirtualDesktopPinnedApps)shell.QueryService(Guids.CLSID_VirtualDesktopPinnedApps, typeof(IVirtualDesktopPinnedApps).GUID);
+		}
 
 		internal static IVirtualDesktop GetDesktop(int index)
 		{	// get desktop with index
@@ -310,7 +315,19 @@ namespace Desktoper.Services
 
 		public static int Count
 		{ // return the number of desktops
-			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(); }
+			get
+			{
+				try
+				{
+					return DesktopManager.VirtualDesktopManagerInternal.GetCount();
+				}
+				catch (Exception e)
+				{
+					DesktopManager.Init();
+					return DesktopManager.VirtualDesktopManagerInternal.GetCount();
+				}
+				
+			}
 		}
 
 		public static Desktop Current
@@ -333,29 +350,6 @@ namespace Desktoper.Services
 				return new Desktop(DesktopManager.VirtualDesktopManagerInternal.FindDesktop(ref id));
 		}
 
-		public static int FromDesktop(Desktop desktop)
-		{ // return index of desktop object or -1 if not found
-			return DesktopManager.GetDesktopIndex(desktop.ivd);
-		}
-
-		public static string DesktopNameFromDesktop(Desktop desktop)
-		{ // return name of desktop or "Desktop n" if it has no name
-
-			// get desktop name
-			string desktopName = null;
-			try {
-				desktopName = desktop.ivd.GetName();
-			}
-			catch { }
-
-			// no name found, generate generic name
-			if (string.IsNullOrEmpty(desktopName))
-			{ // create name "Desktop n" (n = number starting with 1)
-				desktopName = "Desktop " + (DesktopManager.GetDesktopIndex(desktop.ivd) + 1).ToString();
-			}
-			return desktopName;
-		}
-
 		public static string DesktopNameFromIndex(int index)
 		{ // return name of desktop from index (-> index = 0..Count-1) or "Desktop n" if it has no name
 
@@ -374,23 +368,6 @@ namespace Desktoper.Services
 			return desktopName;
 		}
 
-		public static bool HasDesktopNameFromIndex(int index)
-		{ // return true is desktop is named or false if it has no name
-
-			// read desktop name in registry
-			string desktopName = null;
-			try {
-				desktopName = DesktopManager.GetDesktop(index).GetName();
-			}
-			catch { }
-
-			// name found?
-			if (string.IsNullOrEmpty(desktopName))
-				return false;
-			else
-				return true;
-		}
-
 		public static string DesktopWallpaperFromIndex(int index)
 		{ // return name of desktop wallpaper from index (-> index = 0..Count-1)
 
@@ -402,21 +379,6 @@ namespace Desktoper.Services
 			catch { }
 
 			return desktopwppath;
-		}
-
-		public static int SearchDesktop(string partialName)
-		{ // get index of desktop with partial name, return -1 if no desktop found
-			int index = -1;
-
-			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(); i++)
-			{ // loop through all virtual desktops and compare partial name to desktop name
-				if (DesktopNameFromIndex(i).ToUpper().IndexOf(partialName.ToUpper()) >= 0)
-				{ index = i;
-					break;
-				}
-			}
-
-			return index;
 		}
 
 		public static Desktop Create()
@@ -444,23 +406,6 @@ namespace Desktoper.Services
 				fallbackdesktop = fallback.ivd;
 
 			DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(ivd, fallbackdesktop);
-		}
-
-		public static void RemoveAll()
-		{ // remove all desktops but visible
-			int desktopcount = DesktopManager.VirtualDesktopManagerInternal.GetCount();
-			int desktopcurrent = DesktopManager.GetDesktopIndex(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
-
-			if (desktopcurrent < desktopcount-1)
-			{ // remove all desktops "right" from current
-				for (int i = desktopcount-1; i > desktopcurrent; i--)
-					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(i), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
-			}
-			if (desktopcurrent > 0)
-			{ // remove all desktops "left" from current
-				for (int i = 0; i < desktopcurrent; i++)
-					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(0), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
-			}
 		}
 
 		public void Move(int index)

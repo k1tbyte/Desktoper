@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace SteamOrganizer.MVVM.Core
+namespace Desktoper.MVVM.Core
 {
-    internal sealed class RelayCommand : ICommand
+    public sealed class RelayCommand : ICommand
     {
         private readonly Action<object> _execute;
         private readonly Func<object, bool> _canExecute;

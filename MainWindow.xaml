@@ -4,9 +4,89 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Desktoper"
+        xmlns:view="clr-namespace:Desktoper.MVVM.View"
+        xmlns:controls="clr-namespace:Desktoper.MVVM.View.Controls"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="Desktoper"
+        Height="510" Width="780" Opacity="0.98">
+            <Border CornerRadius="7" Background="{DynamicResource Background}"
+            BorderBrush="{DynamicResource Border}"
+            BorderThickness="1" Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Direction="-90"
+                              RenderingBias="Quality" ShadowDepth="2"/>
+        </Border.Effect>
+        <Grid>
+            <Grid Background="Transparent" VerticalAlignment="Top"
+                  MouseLeftButtonDown="OnDragMove" Height="55">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="25 0 0 0">
+                    <TextBlock Foreground="{DynamicResource Foreground}"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               FontSize="16">
+                        Process listening 
+                    </TextBlock>
+                    <Border CornerRadius="20"
+                            Cursor="Hand" MouseLeftButtonDown="ListeningStateMouseDown"
+                            VerticalAlignment="Center" Margin="10 3 0 0"
+                            Width="10" Height="10">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="PaleVioletRed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Config.IsListening}" Value="True">
+                                        <Setter Property="Background" Value="SpringGreen"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </StackPanel>
+
+                
+                <StackPanel  HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button Width="25" Height="25" 
+                            Click="ButtonBase_OnClick"
+                            Style="{StaticResource IconButton}"
+                            Padding="5"
+                            Tag="{StaticResource CogIcon}">
+                        <Button.Resources>
+                            <CornerRadius x:Key="CornerRadius">5 5 5 5</CornerRadius>
+                        </Button.Resources>
+                    </Button>
+                    
+                    <Button
+                        Margin="9 0 15 0"
+                        Tag="{StaticResource CloseIcon}"
+                        Width="25" Height="25" Padding="6.5"
+                        HorizontalAlignment="Right"
+                        Click="OnClosing"
+                        VerticalAlignment="Center">
+                        <Button.Resources>
+                            <CornerRadius x:Key="CornerRadius">5 5 5 5</CornerRadius>
+                        </Button.Resources>
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource IconButton}" TargetType="Button">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource Secondary}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource Destructive}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+
+                <Border Background="{DynamicResource Border}" Height="1" VerticalAlignment="Bottom"></Border>
+            </Grid>
+            <view:DesktopsView Margin="0 55 0 0"/>
+            
+            <controls:PopupHost x:Name="PopupHost" 
+            />
+        </Grid>
+    </Border>
 </Window>

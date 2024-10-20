@@ -1,6 +1,9 @@
-﻿namespace Desktoper.Lib
+﻿using System;
+using Microsoft.Win32;
+
+namespace Desktoper.Lib
 {
-    public static class Registry
+    public static class RegistryUtils
     {
         public static object GetUserRegistryValue(string path, string valueName)
         {
@@ -11,10 +14,7 @@
                     return registryKey.GetValue(valueName);
                 }
             }
-            catch (Exception e)
-            {
-                App.Logger.Value.LogHandledException(e);
-            }
+            catch{ }
 
             return null;
         }
@@ -29,10 +29,7 @@
                 }
                 return true;
             }
-            catch (Exception e)
-            {
-                App.Logger.Value.LogHandledException(e);
-            }
+            catch { }
 
             return false;
         }
@@ -47,10 +44,7 @@
                 }
                 return true;
             }
-            catch (Exception e)
-            {
-                App.Logger.Value.LogHandledException(e);
-            }
+            catch { }
 
             return false;
         }

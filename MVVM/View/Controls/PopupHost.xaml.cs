@@ -7,12 +7,12 @@ using System.Windows.Media.Animation;
 
 namespace Desktoper.MVVM.View.Controls
 {
-    public partial class Popup : Grid
+    public partial class PopupHost : Grid
     {
         internal Action Closed;
 
         public static readonly DependencyProperty PopupContentProperty =
-            DependencyProperty.Register("PopupContent", typeof(object), typeof(Popup), new PropertyMetadata(null));
+            DependencyProperty.Register("PopupContent", typeof(object), typeof(PopupHost), new PropertyMetadata(null));
         
         internal readonly SemaphoreSlim OpenedSemaphore = new SemaphoreSlim(1, 1);
         
@@ -50,7 +50,7 @@ namespace Desktoper.MVVM.View.Controls
             set => SetValue(PopupContentProperty, value);
         }
         
-        private void HidePopup(object sender, MouseButtonEventArgs e)
+        private void HidePopup(object sender, EventArgs e)
         {
             if (OpenedSemaphore.CurrentCount == 1)
                 return;
@@ -70,7 +70,7 @@ namespace Desktoper.MVVM.View.Controls
             OpenedSemaphore.Release();
         }
         
-        public Popup()
+        public PopupHost()
         {
             InitializeComponent();
 

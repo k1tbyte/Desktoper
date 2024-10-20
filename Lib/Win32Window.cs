@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Automation;
 
 // ReSharper disable InconsistentNaming
 
-namespace Desktoper.Services
+namespace Desktoper.Lib
 {
     public static class Win32Window
     {
@@ -77,6 +78,37 @@ namespace Desktoper.Services
             return processes;
         }
 
+        public static void MoveWindow(IntPtr hWnd, int? x = null, int? y = null, int? width=null, int? height=null)
+        {
+            if (!x.HasValue && !y.HasValue && !width.HasValue && !height.HasValue)
+            {
+                return;
+            }
+
+            if (!GetWindowRect(hWnd, out var rect))
+            {
+                return;
+            }
+            
+            SetWindowPos(hWnd, 
+                IntPtr.Zero, 
+                x ?? rect.Left,  
+                y ?? rect.Top, 
+                width ?? rect.Right - rect.Left, 
+                height ?? rect.Bottom - rect.Top, 
+                SWP_NOZORDER | SWP_SHOWWINDOW);
+        }
+
+        public static Rectangle? GetWindowSize(IntPtr hWnd)
+        {
+            if (!GetWindowRect(hWnd, out Rect rect))
+            {
+                return null;
+            }
+            
+            return new Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+        }
+
         #region Imports
 
         
@@ -95,16 +127,22 @@ namespace Desktoper.Services
         private static extern bool IsWindowVisible(IntPtr hWnd);
         
         [DllImport("user32.dll")]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         
         [DllImport("user32.dll")]
         private static extern IntPtr GetShellWindow();
         
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        private static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
+        
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        
+        [DllImport("user32.dll")]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        public struct RECT
+        public struct Rect
         {
             public int Left;
             public int Top;
@@ -112,8 +150,13 @@ namespace Desktoper.Services
             public int Bottom;
         }
         
+        private const int SWP_NOSIZE = 0x0001;
+        private const int SWP_NOMOVE = 0x0002;
+        private const int SWP_NOZORDER = 0x0004;
+        private const int SWP_SHOWWINDOW = 0x0040;
+        
         public const int GWL_EXSTYLE = -20;
-        public const int WS_EX_LAYERED = 0x00080000; // Прозрачное окно
+        public const int WS_EX_LAYERED = 0x00080000; 
         public const int WS_EX_TOOLWINDOW = 0x00000080;
 
         #endregion

@@ -2,9 +2,9 @@
 
 namespace Desktoper.MVVM.View
 {
-    public partial class SetiingsView : UserControl
+    public partial class SettingsView : UserControl
     {
-        public SetiingsView()
+        public SettingsView()
         {
             InitializeComponent();
         }

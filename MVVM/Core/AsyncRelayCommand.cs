@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace SteamOrganizer.MVVM.Core
+namespace Desktoper.MVVM.Core
 {
     internal sealed class AsyncRelayCommand : ICommand
     {

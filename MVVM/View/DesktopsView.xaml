@@ -1,22 +1,40 @@
-﻿<Grid x:Class="Desktoper.MVVM.View.DesktopListView"
+﻿<Grid x:Class="Desktoper.MVVM.View.DesktopsView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:Desktoper.MVVM.View"
-      mc:Ignorable="d"
-      d:DataContext="{local:DesktopListView}">
-        <ListBox ItemsSource="{Binding Desktops}"
-                         HorizontalAlignment="Left"
-                         Margin="0 55 0 0"
-                         Padding="25 10 25 20"
-                         VerticalAlignment="Center"
-                         Background="Transparent"
-                         SelectionMode="Single"
-                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                         ScrollViewer.CanContentScroll="False"
-                         BorderBrush="{DynamicResource Border}" BorderThickness="0 0 1 0"
-                         d:ItemsSource="{d:SampleData}">
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:viewModel="clr-namespace:Desktoper.MVVM.ViewModel"
+      mc:Ignorable="d" 
+      d:DataContext="{viewModel:DesktopsViewModel}">
+    <Grid.DataContext>
+        <viewModel:DesktopsViewModel/>
+    </Grid.DataContext>
+    <Border Width="180" HorizontalAlignment="Left"
+            BorderThickness="0 0 1 0"
+            BorderBrush="{DynamicResource Border}">
+        <Grid>
+            
+            <Button Width="120" Height="80" VerticalAlignment="Bottom" Margin="0 0 0 20"
+                    Command="{Binding AddNewDesktopCommand}">
+                <TextBlock FontSize="50" Margin="0 0 0 10"
+                           VerticalAlignment="Center" HorizontalAlignment="Center"  
+                           Foreground="{DynamicResource Foreground}">+</TextBlock>
+            </Button>
+            <ListBox x:Name="DesktopsListBox"
+                ItemsSource="{Binding Desktops}"
+                 Margin="0 0 0 120"
+                 Padding="0 10 0 0"
+                 Background="Transparent"
+                 SelectionMode="Single"
+                 SelectedItem="{Binding SelectedDesktop}"
+                 SelectedIndex="{Binding SelectedDesktopIndex, Mode=OneWayToSource}"
+                 AlternationCount="100"
+                 BorderBrush="Transparent" BorderThickness="0"
+                 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                 ScrollViewer.CanContentScroll="False"
+                 d:ItemsSource="{d:SampleData}">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -29,16 +47,24 @@
                                             Width="120" Height="80"
                                             BorderThickness="1" Margin="0 20 0 0"
                                             Padding="10" CornerRadius="3">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="MiddleClick" 
+                                                          Command="{Binding
+                                                            RelativeSource={RelativeSource AncestorType=ListBox, Mode=FindAncestor}, Path=DataContext.RemoveDesktopCommand}"
+                                                          CommandParameter="{Binding}"/>
+                                        </Border.InputBindings>
                                         <TextBlock Foreground="{DynamicResource Foreground}"
                                                    FontWeight="Bold" FontSize="32"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"
-                                                   Text="{Binding}"/>
+                                                   Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, 
+                                                   Path=(ItemsControl.AlternationIndex), Converter={StaticResource IncrementConverter}}"/>
 
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
-                                           <Setter TargetName="Card" Property="Background" Value="{DynamicResource Card}"/>
+                                           <Setter TargetName="Card" Property="Background"
+                                                   Value="{DynamicResource Card}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -47,4 +73,191 @@
                     </Style>
                 </ListBox.ItemContainerStyle>
             </ListBox>
+        </Grid>
+    </Border>
+    <Grid Margin="200 15 15 15">
+        <Grid Visibility="{Binding SelectedDesktop, Converter={StaticResource ToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Top" 
+                        Orientation="Horizontal">
+                <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource Foreground}" Text="Desktop: "/>
+                <TextBox x:Name="DesktopNameTextBox" FontSize="16" FontWeight="Medium"  Margin="5 1 0 0"
+                         MaxLength="50"
+                         CaretBrush="{DynamicResource Foreground}"
+                         Foreground="{DynamicResource Foreground}">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Text" Value="{Binding SelectedDesktop.Name, UpdateSourceTrigger=LostFocus, Mode=OneWay}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <Border Padding="6 4" CornerRadius="5" Background="{DynamicResource Card}">
+                                            <Grid>
+                                                <ScrollViewer FontWeight="Medium" Padding="0" Margin="0" x:Name="PART_ContentHost" />
+                                                <TextBlock x:Name="Placeholder" Visibility="Collapsed" Padding="2 0"/>
+                                            </Grid>
+                                            
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Path=SelectedDesktop.Name}" Value="{x:Null}">
+                                                <Setter  TargetName="Placeholder" 
+                                                         Property="Text" 
+                                                         Value="{Binding Path=SelectedDesktopIndex}"/>
+                                            </DataTrigger>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </StackPanel>
+            
+            <Grid VerticalAlignment="Top" Margin="0 50 5 0"> 
+                <Border BorderBrush="{DynamicResource Border}" 
+                        BorderThickness="1" CornerRadius="3" />
+                
+                <DockPanel VerticalAlignment="Top" Margin="14 10 0 0">
+                    <DockPanel.Resources>
+                        <Style TargetType="TextBlock" x:Key="Header">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Opacity" Value="0.7"/>
+                            <Setter Property="FontSize" Value="15"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Foreground}"/>
+                        </Style>
+                    </DockPanel.Resources>
+                    <TextBlock Margin="33 0 0 0" Width="141" Style="{StaticResource Header}" Text="Process"/>
+                    <TextBlock  Width="147" Style="{StaticResource Header}" Text="Position"/>
+                    <TextBlock  Width="100" Style="{StaticResource Header}" Text="Size"/>
+                    
+                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 11 0"
+                            Width="25" Height="25" ContextMenuService.IsEnabled="false"
+                            Command="{Binding OpenAddProcessContextCommand}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource Self}}">
+                        <TextBlock Margin="0 -5 0 0" 
+                                   VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center"
+                                   FontSize="20">+</TextBlock>
+                        <Button.ContextMenu>
+                            <ContextMenu  ItemsSource="{Binding AvailableProcesses}">
+                                <ContextMenu.ItemTemplate>
+                                    <DataTemplate>
+                                        <MenuItem 
+                                            Header="{Binding }" 
+                                            Command="{Binding DataContext.AttachWindowToDesktopCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                            CommandParameter="{Binding}"/> 
+                                    </DataTemplate>
+                                </ContextMenu.ItemTemplate>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </DockPanel>
+                
+                <ListBox ItemsSource="{Binding SelectedDesktop.Windows}"
+                         Background="Transparent" Margin="0 43 0 0"
+                         BorderThickness="0" >
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Card" Background="Transparent" Height="45"
+                                                BorderBrush="{DynamicResource Border}"
+                                                Tag="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
+                                                ContextMenuOpening="Card_OnContextMenuOpening"
+                                                BorderThickness="0 1 0 0" Padding="15 0 10 0">
+                                            <DockPanel>
+                                                <CheckBox Margin="0 0 15 0" IsThreeState="True"
+                                                          IsChecked="{Binding IsEnabled}"/>
+                                                <TextBlock Width="120" Margin="0 0 20 0"
+                                                           FontWeight="Medium" VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Text="{Binding ProcessName, Mode=OneWay}" 
+                                                           Foreground="{DynamicResource Foreground}"/>
+                                                <TextBox Style="{StaticResource TitledTextBox}"
+                                                         x:Name="PosX" PreviewLostKeyboardFocus="ValidateSize"
+                                                         Margin="0 0 6 0" Width="60"
+                                                         PreviewTextInput="NumberFilter" MaxLength="4"
+                                                         Uid="X"
+                                                         Text="{Binding X, UpdateSourceTrigger=LostFocus}"
+                                                         VerticalAlignment="Center" Tag="—"/>
+                                                <TextBox Style="{StaticResource TitledTextBox}"
+                                                         x:Name="PosY" PreviewLostKeyboardFocus="ValidateSize"
+                                                         Width="60" MaxLength="4"
+                                                         PreviewTextInput="NumberFilter"
+                                                         Uid="Y"
+                                                         Text="{Binding Y, UpdateSourceTrigger=LostFocus}"
+                                                         VerticalAlignment="Center" Tag="—"/>
+                                                
+                                                <TextBox Style="{StaticResource TitledTextBox}"
+                                                         x:Name="Width"
+                                                         Margin="20 0 6 0" Width="60" MaxLength="4"
+                                                         PreviewTextInput="NumberFilter" PreviewLostKeyboardFocus="ValidateSize"
+                                                         Uid="W"
+                                                         Text="{Binding Width, UpdateSourceTrigger=LostFocus}" 
+                                                         VerticalAlignment="Center" Tag="—"/>
+                                                <TextBox Style="{StaticResource TitledTextBox}"
+                                                         x:Name="Height"
+                                                         Width="60" MaxLength="4" PreviewLostKeyboardFocus="ValidateSize"
+                                                         PreviewTextInput="NumberFilter"
+                                                         Uid="H"
+                                                         Text="{Binding Height, UpdateSourceTrigger=LostFocus}"
+                                                         VerticalAlignment="Center" Tag="—"/>
+                                                
+                                                <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                        Width="25" Height="25" >
+                                                    <TextBlock Margin="0 -1 0 0" 
+                                                               VerticalAlignment="Center" 
+                                                               HorizontalAlignment="Center"
+                                                               FontSize="9">—</TextBlock>
+                                                </Button>
+                                            </DockPanel>
+                                            <Border.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Get current window properties"
+                                                              Command="{Binding PlacementTarget.Tag.GetCurrentWindowPropertiesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" 
+                                                              CommandParameter="{Binding}"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Card" Property="Background" Value="{DynamicResource Muted}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+                
+                <Grid Visibility="{Binding SelectedDesktop.Windows.Count, Converter={StaticResource ToVisibilityInvertedConverter}}"
+                      Margin="0 43 0 0">
+                    
+                    <Border Height="1" Background="{DynamicResource Border}" VerticalAlignment="Top"/>
+                
+                    <Border 
+                            Style="{StaticResource LabelCard}" Margin="0 30 0 25">
+                        <TextBlock Style="{StaticResource Label}">
+                            No process windows monitored
+                        </TextBlock>
+                    </Border>
+                </Grid>
+
+            </Grid>
+        </Grid>
+        
+        <Border Visibility="{Binding SelectedDesktop, Converter={StaticResource ToVisibilityInvertedConverter}}"
+                Style="{StaticResource LabelCard}">
+            <TextBlock Style="{StaticResource Label}">
+                Select desktop from the left panel
+            </TextBlock>
+        </Border>
+
+    </Grid>
 </Grid>
