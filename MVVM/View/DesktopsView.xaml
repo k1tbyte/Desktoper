@@ -1,0 +1,50 @@
+﻿<Grid x:Class="Desktoper.MVVM.View.DesktopListView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:Desktoper.MVVM.View"
+      mc:Ignorable="d"
+      d:DataContext="{local:DesktopListView}">
+        <ListBox ItemsSource="{Binding Desktops}"
+                         HorizontalAlignment="Left"
+                         Margin="0 55 0 0"
+                         Padding="25 10 25 20"
+                         VerticalAlignment="Center"
+                         Background="Transparent"
+                         SelectionMode="Single"
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         ScrollViewer.CanContentScroll="False"
+                         BorderBrush="{DynamicResource Border}" BorderThickness="0 0 1 0"
+                         d:ItemsSource="{d:SampleData}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Card"
+                                            Background="Transparent"
+                                            BorderBrush="{DynamicResource Border}"
+                                            Width="120" Height="80"
+                                            BorderThickness="1" Margin="0 20 0 0"
+                                            Padding="10" CornerRadius="3">
+                                        <TextBlock Foreground="{DynamicResource Foreground}"
+                                                   FontWeight="Bold" FontSize="32"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="{Binding}"/>
+
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                           <Setter TargetName="Card" Property="Background" Value="{DynamicResource Card}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+</Grid>
